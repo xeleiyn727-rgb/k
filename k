@@ -11,6 +11,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local PlayerGui = player:WaitForChild("PlayerGui")
@@ -1049,9 +1050,15 @@ function Library.CreateWindow(config)
         local function openList()
             open = true
 
+            -- Force a fresh layout pass before measuring anything. Reading
+            -- AbsolutePosition/AbsoluteSize in the same frame as a Visible/Size
+            -- change can return a stale value from before that change applied,
+            -- which is what caused the list to appear anchored to the wrong row.
+            RunService.Heartbeat:Wait()
+
             -- Anchor to the whole UI window (Main), not the individual card: the flyout
             -- opens flush against the window's right edge, top-aligned with this dropdown's
-            -- own card. Flips to the left edge if there isn't room on the right.
+            -- own box. Flips to the left edge if there isn't room on the right.
             local targetH = #options * ROW_H + 12
             local screenW = ScreenGui.AbsoluteSize.X
             local mainRight = Main.AbsolutePosition.X + Main.AbsoluteSize.X
